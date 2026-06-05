@@ -1,8 +1,8 @@
 using System.IO.Ports;
 
 
-
-
+using InputSimulatorPro;
+using InputSimulatorPro.Resources.Natives;
 using System.Management;
 using System.Collections.Specialized;
 
@@ -20,23 +20,23 @@ namespace DuoPinballCore9
         int plungerval = 0;
         // SerialPort? mySerialPort;
         private DuoPinballCore9.HighPerformanceSerialReceiver hpr = new HighPerformanceSerialReceiver("COM6");
-        //private InputSimulator _inputSimulator;
-        //public InputSimulator inputSimulator
-        //{
-        //    get
-        //    {
-        //        //if(_inputSimulator == null)
-        //        {
-        //            //_inputSimulator = new InputSimulator();
-        //        }
-        //        //return _inputSimulator;
+        private InputSimulatorPro.InputSimulator _inputSimulator;
+        public InputSimulator inputSimulator
+        {
+            get
+            {
+                if(_inputSimulator == null)
+                {
+                    _inputSimulator = new InputSimulator();
+                }
+                return _inputSimulator;
 
-        //    }
-        //    private set
-        //    {
-        //        //_inputSimulator = value;
-        //    }
-        //}
+            }
+            private set
+            {
+                _inputSimulator = value;
+            }
+        }
 
 
 
@@ -64,14 +64,14 @@ namespace DuoPinballCore9
                             serialport = queryObj["DeviceID"].ToString();
                             return serialport;
                             //    UpdateStatus("Paired on " + queryObj["Caption"].ToString());
-                            //   UpdateLog("Duo Pinball found paired to " + serialport);
+                               UpdateLog("Duo Pinball found paired to " + serialport);
                             break;
                         }
                     }
                 }
                 catch(ManagementException error)
                 {
-                    //   UpdateLog("Unable to read list of COM ports from WMI: " + error.Message);
+                       UpdateLog("Unable to read list of COM ports from WMI: " + error.Message);
 
                 }
 
@@ -83,37 +83,39 @@ namespace DuoPinballCore9
 
         private HighPerformanceSerialReceiver receiver;
 
-        private  async Task<HighPerformanceSerialReceiver> Start()
+        private async Task<HighPerformanceSerialReceiver> Start()
         {
-             receiver = new HighPerformanceSerialReceiver("COM6", 115200);
-            receiver.Start();
-
-            var cts = new CancellationTokenSource();
-            await foreach(var rawBytes in receiver.ConsumeDataAsync(cts.Token))
+            this.Cursor = Cursors.WaitCursor;
+            QueryPortName();
+            if(!string.IsNullOrEmpty(serialport))
             {
-                DataReceivedHandler(rawBytes);
+                receiver = new HighPerformanceSerialReceiver("COM6", 115200);
+                receiver.Start();
+                this.Cursor = Cursors.Default;
+                var cts = new CancellationTokenSource();
+                await foreach(var rawBytes in receiver.ConsumeDataAsync(cts.Token))
+                {
+                    DataReceivedHandler(rawBytes);
+                }
             }
+    
 
             return receiver;
         }
 
-        public  void DataReceivedHandler(byte[]? rawBytes)
-            {
+        public void DataReceivedHandler(byte[]? rawBytes)
+        {
+           
             if(rawBytes != null)
             {
-
+                if(rawBytes.Length > 6)
+                {
+                    Span<byte> spanByte = rawBytes;
+                    var  part1 = spanByte.Slice(0, 6);
+                    var part2 = spanByte.Slice(5);
+                }
                 byte[] ByteArray = rawBytes;
-                // Convert ASCII string to HEX
-                //for(int i = 0; i < CharArray.Length; i++)
-                //{
-                //    ByteArray[i] = Convert.ToByte(CharArray[i]);
-                //    ByteArray[i] += 0x30;
-                //}
-                //string outdata = "";
-                //for(int i = 0; i < CharArray.Length; i++)
-                //{
-                //    outdata += ByteArray[i] + " ";
-                //}
+                
 
                 // If the first two digits are correct then interpret the command
                 if(ByteArray.Length > 3 && ByteArray[0] == 90 && ByteArray[1] == 165)
@@ -127,8 +129,8 @@ namespace DuoPinballCore9
 
 
 
-                            //inputSimulator.Keyboard.KeyUp(VirtualKeyCode.LSHIFT);
-                            //inputSimulator.Keyboard.KeyUp(VirtualKeyCode.RSHIFT);
+                            InputSimulator.Keyboard.KeyUp(VirtualKeyShort.LSHIFT);
+                            InputSimulator.Keyboard.KeyUp(VirtualKeyShort.RSHIFT);
                             //LeftFlipper(false);
                             //RightFlipper(false);
                             UpdateLog("flipper released");
@@ -137,7 +139,7 @@ namespace DuoPinballCore9
                         {
                             // Left Flipper
                             //inputSimulator.Keyboard.KeyDown(VirtualKeyCode.LSHIFT);
-
+                            InputSimulator.Keyboard.KeyDown(VirtualKeyShort.LSHIFT);
                             //LeftFlipper(true);
                             //RightFlipper(false);
                             UpdateLog("left flipper pressed");
@@ -145,6 +147,7 @@ namespace DuoPinballCore9
                         else if(ByteArray[3] == 2)
                         {
                             // Right Flipper
+                            InputSimulator.Keyboard.KeyDown(VirtualKeyShort.RSHIFT);
                             //  InputSimulator.SimulateKeyUp(VirtualKeyCode.LSHIFT);
                             //inputSimulator.Keyboard.KeyDown(VirtualKeyCode.RSHIFT);
                             //LeftFlipper(false);
@@ -154,6 +157,8 @@ namespace DuoPinballCore9
                         else if(ByteArray[3] == 3)
                         {
                             // Both Flippers
+                            InputSimulator.Keyboard.KeyDown(VirtualKeyShort.LSHIFT);
+                            InputSimulator.Keyboard.KeyDown(VirtualKeyShort.RSHIFT);
                             //inputSimulator.Keyboard.KeyDown(VirtualKeyCode.LSHIFT);
                             //inputSimulator.Keyboard.KeyDown(VirtualKeyCode.RSHIFT);
                             //LeftFlipper(true);
@@ -164,13 +169,14 @@ namespace DuoPinballCore9
                     }
                     else if(ByteArray[2] == 2)
                     {
-                        if(ByteArray[5] == 49)
+                        if(ByteArray[4] == 49)
                         {
                             // Ball Launcher Button
                             // Plunger(0);
                             if(plungerval != 0)
                             {
                                 plungerval = 0;
+                                InputSimulator.Keyboard.KeyPress(VirtualKeyShort.SPACE);
                                 //  InputSimulator.SimulateKeyPress(VirtualKeyCode.RETURN);
                             }
                         }
@@ -195,9 +201,9 @@ namespace DuoPinballCore9
 
         // TODO: close serial cnnection and dispose
 
-        public  delegate void ControlStringConsumer(string text);  // defines a delegate type
+        public delegate void ControlStringConsumer(string text);  // defines a delegate type
 
-        public  void UpdateLog(string v)
+        public void UpdateLog(string v)
         {
             string updated = this.textBox1.Text + System.Environment.NewLine + v;
             if(textBox1.InvokeRequired)
@@ -219,7 +225,10 @@ namespace DuoPinballCore9
         {
             //if(mySerialPort != null)
             //{
-
+            if(receiver != null)
+            {
+            receiver.DisposeAsync();
+            }
             //    mySerialPort.Close();
             //    mySerialPort.Dispose();
 
