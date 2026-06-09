@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using InputSimulatorPro;
 using InputSimulatorPro.Resources.Natives;
-
+using Nefarius.ViGEm;
+using Nefarius.ViGEm.Client;
+using Nefarius.ViGEm.Client.Targets;
+using Nefarius.ViGEm.Client.Targets.Xbox360;
 namespace DuoPinballCore9
 {
      
@@ -16,23 +20,48 @@ namespace DuoPinballCore9
         private Form1 form;
         string? serialport = null;
         private HighPerformanceSerialReceiver receiver;
-        //private InputSimulatorPro.InputSimulator _inputSimulator;
-        //internal InputSimulator inputSimulator
-        //{
-        //    get
-        //    {
-        //        if(_inputSimulator == null)
-        //        {
-        //            _inputSimulator = new InputSimulator();
-        //        }
-        //        return _inputSimulator;
+        private bool _usexbox360 = false;
 
-        //    }
-        //    private set
-        //    {
-        //        _inputSimulator = value;
-        //    }
-        //}
+        public bool UseXbox360
+        {
+            get
+            {
+                return _usexbox360 ;
+            }
+            set
+            {
+                _usexbox360 = value;
+            }
+        }
+        private ViGEmClient _vigemclient;
+        private ViGEmClient ViGEmClient
+        {
+            get { if(_vigemclient == null)
+                {
+                    _vigemclient = new ViGEmClient();
+                }
+                return _vigemclient;
+            }
+      
+        }
+        private IXbox360Controller _xbox360Controller;
+        private IXbox360Controller Xbox360Controller
+        {
+            get
+            {
+                if(_xbox360Controller == null)
+                {
+
+                    this._xbox360Controller = this.ViGEmClient.CreateXbox360Controller();
+                    this._xbox360Controller.Connect();
+                }
+                return this._xbox360Controller;
+            }
+        }
+        private VirtualKeyShort[] _flippers = {VirtualKeyShort.LSHIFT, VirtualKeyShort.RSHIFT};
+        private VirtualKeyShort[] _rightFlipper = { VirtualKeyShort.RSHIFT };
+        private VirtualKeyShort[] _leftFlipper = { VirtualKeyShort.LSHIFT };
+        private VirtualKeyShort[] _plunger = { VirtualKeyShort.SPACE };
 
         internal MainPresenter(Form1 form)
         {
@@ -134,47 +163,50 @@ namespace DuoPinballCore9
                     {
                         // Flippers Released
 
-
-
-                        InputSimulator.Keyboard.KeyUp(VirtualKeyShort.LSHIFT);
-                        InputSimulator.Keyboard.KeyUp(VirtualKeyShort.RSHIFT);
+                       
+                        SendInput(_flippers, false);
 
                         form.UpdateLog("flipper released");
                     }
                     else if(ByteArray[3] == 1)
                     {
                         // Left Flipper
-                        InputSimulator.Keyboard.KeyDown(VirtualKeyShort.LSHIFT);
-
+                       
+                        SendInput(_leftFlipper, true); 
                         form.UpdateLog("left flipper pressed");
                     }
                     else if(ByteArray[3] == 2)
                     {
                         // Right Flipper
-                        InputSimulator.Keyboard.KeyDown(VirtualKeyShort.RSHIFT);
+                      
+                        SendInput(_rightFlipper, true);
                         form.UpdateLog("right flipper pressed");
                     }
                     else if(ByteArray[3] == 3)
                     {
                         // Both Flippers
-                        InputSimulator.Keyboard.KeyDown(VirtualKeyShort.LSHIFT);
-                        InputSimulator.Keyboard.KeyDown(VirtualKeyShort.RSHIFT);
+                       
+                        SendInput(_flippers, true);
+
 
                         form.UpdateLog("both flipper pressed");
 
-                    }
+                   }
                 }
                 else if(ByteArray[2] == 2)
                 {
                     if(ByteArray[4] == 255)
                     {
 
-                        InputSimulator.Keyboard.KeyUp(VirtualKeyShort.SPACE);
+                        SendInput(_plunger, false);
+                        //InputSimulator.Keyboard.KeyUp(VirtualKeyShort.SPACE);
                         form.UpdateLog("plunger deactivated");
                     }
                     else
                     {
-                        InputSimulator.Keyboard.KeyDown(VirtualKeyShort.SPACE);
+                        
+                        SendInput(_plunger, false);
+                        //InputSimulator.Keyboard.KeyDown(VirtualKeyShort.SPACE);
                         form.UpdateLog("plunger activated");
                     }
                 }
@@ -189,12 +221,79 @@ namespace DuoPinballCore9
             }
         }
 
+        private  void SendInput(VirtualKeyShort[] keys, bool down)
+        {
+            if(UseXbox360)
+            {
+                foreach(var key in keys)
+                {
+                    if(down)
+                    {
+                        if(key == VirtualKeyShort.LSHIFT)
+                        {
+
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, true);
+                            //   //InputSimulator.Keyboard.KeyDown(key);
+                        }
+                        else if(key == VirtualKeyShort.RSHIFT)
+                        {
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, true);
+                        }
+                        else
+                        {
+                        
+                        }
+                    }
+                    else
+                    {
+                        if(key == VirtualKeyShort.LSHIFT)
+                        {
+
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, false);
+                            //   //InputSimulator.Keyboard.KeyDown(key);
+                        }
+                        else if(key == VirtualKeyShort.RSHIFT)
+                        {
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, false);
+                        }
+                        else
+                        {
+
+                        }
+                        //InputSimulator.Keyboard.KeyUp(key);
+                    }
+                }
+
+            }
+            else
+            {
+                foreach(var key in keys)
+                {
+                    if(down)
+                    {
+                        InputSimulator.Keyboard.KeyDown(key);
+                    }
+                    else
+                    {
+                        InputSimulator.Keyboard.KeyUp(key);
+                    }
+                }
+    
+        }
+        
+        }
+
         internal void Dispose()
         {
             if(receiver != null)
             {
                 receiver.DisposeAsync();
             }
+            if(ViGEmClient != null)
+            {
+            ViGEmClient.Dispose();
+            }
+
         }
     }
 }

@@ -31,6 +31,8 @@
             this.button1 = new Button();
             this.textBox1 = new TextBox();
             this.label1 = new Label();
+            this.btnDisconnect = new Button();
+            this.cbXbox360 = new CheckBox();
             this.SuspendLayout();
             // 
             // button1
@@ -67,11 +69,34 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Log";
             // 
+            // btnDisconnect
+            // 
+            this.btnDisconnect.Location = new Point(607, 434);
+            this.btnDisconnect.Name = "btnDisconnect";
+            this.btnDisconnect.Size = new Size(88, 23);
+            this.btnDisconnect.TabIndex = 3;
+            this.btnDisconnect.Text = "disconnect";
+            this.btnDisconnect.UseVisualStyleBackColor = true;
+            this.btnDisconnect.Click += this.btnDisconnect_Click;
+            // 
+            // cbXbox360
+            // 
+            this.cbXbox360.AutoSize = true;
+            this.cbXbox360.Location = new Point(625, 362);
+            this.cbXbox360.Name = "cbXbox360";
+            this.cbXbox360.Size = new Size(89, 19);
+            this.cbXbox360.TabIndex = 4;
+            this.cbXbox360.Text = "UseXbox360";
+            this.cbXbox360.UseVisualStyleBackColor = true;
+            this.cbXbox360.CheckedChanged += this.cbXbox360_CheckedChanged;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.ClientSize = new Size(762, 519);
+            this.Controls.Add(this.cbXbox360);
+            this.Controls.Add(this.btnDisconnect);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
@@ -88,5 +113,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
         private Label label1;
+        private Button btnDisconnect;
+        private CheckBox cbXbox360;
     }
 }
