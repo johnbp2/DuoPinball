@@ -18,4 +18,10 @@
     <PackageReference Include="System.Management" Version="10.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Nefarius.ViGEm.Client">
+      <HintPath>C:\standalone\DuoPinballXbox\Nefarius.ViGEm.Client.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
