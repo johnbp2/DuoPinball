@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
@@ -10,13 +11,23 @@ namespace DuoPinballCore9
 {
 
 
+
+
+
+    [DebuggerDisplay("{DebugDisplay}")]
     public class HighPerformanceSerialReceiver : IAsyncDisposable
     {
         private readonly SerialPort _serialPort;
         private readonly Channel<byte[]> _packetChannel;
         private CancellationTokenSource _cts;
         private Task _readTask;
-
+        public string DebugDisplay
+        {
+            get
+            {
+                return $"SerialPort={this._serialPort}";
+            }
+        }
         public HighPerformanceSerialReceiver(string portName, int baudRate = 115200)
         {
             // 1. Pre-allocate thread-safe channel for decoupling processing from reading
@@ -75,10 +86,12 @@ namespace DuoPinballCore9
                     }
                 }
             }
-            catch(OperationCanceledException) { /* Normal shutdown scenario */ }
+            catch(OperationCanceledException) { /* Normal shutdown scenario */ 
+            
+            }
             catch(Exception ex)
             {
-                Console.WriteLine($"Critical Stream Error: {ex.Message}");
+                Debugger.Log(1,"Exception",$"Critical Stream Error: {ex.Message}");
             }
         }
 
@@ -90,16 +103,19 @@ namespace DuoPinballCore9
 
         public async ValueTask DisposeAsync()
         {
-            _cts?.Cancel();
-
-            if(_readTask != null)
+            if(_cts != null)
             {
-                try
-                {
-                    await _readTask;
-                }
-                catch { /* suppress */ }
+
+                await _cts?.CancelAsync();
             }
+            //if(_readTask != null)
+            //{
+            //    try
+            //    {
+            //        await _readTask.;
+            //    }
+            //    catch { /* suppress */ }
+            //}
 
             _serialPort?.Close();
             _serialPort?.Dispose();

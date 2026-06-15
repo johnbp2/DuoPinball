@@ -58,6 +58,21 @@ namespace DuoPinballCore9
                 return this._xbox360Controller;
             }
         }
+
+        private BindingSource _logitems = new BindingSource();
+
+        public BindingSource LogItems
+        {
+            get
+            {
+                return _logitems;
+            }
+            set
+            {
+                _logitems =  value;
+            }
+        }
+
         private VirtualKeyShort[] _flippers = {VirtualKeyShort.LSHIFT, VirtualKeyShort.RSHIFT};
         private VirtualKeyShort[] _rightFlipper = { VirtualKeyShort.RSHIFT };
         private VirtualKeyShort[] _leftFlipper = { VirtualKeyShort.LSHIFT };
@@ -76,6 +91,7 @@ namespace DuoPinballCore9
                 serialport = null;
                 try
                 {
+                    this.form.UpdateLog("Querying Duo Pinball. make sure it's connected ");
                     ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT DeviceID,PNPDeviceID,Caption from Win32_SerialPort");
                     foreach(ManagementObject queryObj in searcher.Get())
                     {
@@ -109,7 +125,11 @@ namespace DuoPinballCore9
         internal async Task<HighPerformanceSerialReceiver> Start()
         {
             form.Cursor = Cursors.WaitCursor;
-            QueryPortName();
+            // QueryPortName();
+            if(string.IsNullOrEmpty(serialport))
+            {
+                QueryPortName();
+            }
             if(!string.IsNullOrEmpty(serialport))
             {
                 receiver = new HighPerformanceSerialReceiver(serialport, 115200);
@@ -122,10 +142,12 @@ namespace DuoPinballCore9
                 }
             }
             else
-            {form.Cursor = Cursors.Default;
+            {
+                form.UpdateLog("unable to find duo controller");
+                form.Cursor = Cursors.Default;
             }
 
-
+            
             return receiver;
         }
         internal void ProcessPackets(byte[]? rawBytes)
@@ -138,20 +160,20 @@ namespace DuoPinballCore9
                     Span<byte> spanByte = rawBytes;
                     var part1 = spanByte.Slice(0, 6);
                     var part2 = spanByte.Slice(5);
-                    SimulateInput(part1.ToArray());
-                    SimulateInput(part2.ToArray());
+                    AnalyzePacketData(part1.ToArray());
+                    AnalyzePacketData(part2.ToArray());
 
                 }
                 else
                 {
                     byte[] ByteArray = rawBytes;
 
-                    SimulateInput(ByteArray);
+                    AnalyzePacketData(ByteArray);
                 }
             }
         }
 
-        internal void SimulateInput(byte[] ByteArray)
+        internal void AnalyzePacketData(byte[] ByteArray)
         {
             // validate bytes
             if(ByteArray.Length > 3 && ByteArray[0] == 90 && ByteArray[1] == 165)
@@ -239,9 +261,10 @@ namespace DuoPinballCore9
                         {
                             this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, true);
                         }
-                        else
+                        else if(key == VirtualKeyShort.SPACE)
                         {
-                        
+                           // InputSimulator.Keyboard.KeyDown(key);
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.A, true);
                         }
                     }
                     else
@@ -256,9 +279,10 @@ namespace DuoPinballCore9
                         {
                             this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, false);
                         }
-                        else
+                        else if(key == VirtualKeyShort.SPACE)
                         {
-
+                           // InputSimulator.Keyboard.KeyUp(key);
+                            this.Xbox360Controller.SetButtonState(Xbox360Button.A, false);
                         }
                         //InputSimulator.Keyboard.KeyUp(key);
                     }
@@ -283,11 +307,11 @@ namespace DuoPinballCore9
         
         }
 
-        internal void Dispose()
+        internal  void Dispose()
         {
             if(receiver != null)
             {
-                receiver.DisposeAsync();
+               receiver.DisposeAsync();
             }
             if(ViGEmClient != null)
             {
