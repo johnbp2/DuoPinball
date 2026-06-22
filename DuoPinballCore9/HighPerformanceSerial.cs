@@ -103,10 +103,10 @@ namespace DuoPinballCore9
 
         public async ValueTask DisposeAsync()
         {
-            if(_cts != null)
+            if(_cts != null && !_cts.IsCancellationRequested)
             {
 
-                await _cts?.CancelAsync();
+                await _cts.CancelAsync();
             }
             //if(_readTask != null)
             //{
