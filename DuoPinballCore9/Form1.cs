@@ -1,13 +1,3 @@
-using System.IO.Ports;
-
-
-using InputSimulatorPro;
-using InputSimulatorPro.Resources.Natives;
-using System.Management;
-using System.Collections.Specialized;
-using System.Collections;
-
-
 namespace DuoPinballCore9
 {
     public partial class Form1 : Form
@@ -44,23 +34,27 @@ namespace DuoPinballCore9
 
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             dataGridView1.Columns.Add(column2);
-            this.dataGridView1.DataSource = this.presenter.LogItems;
+            this.dataGridView1.DataSource = Log.LogItems;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void btnConnect_Click(object sender, EventArgs e)
         {
             cbXbox360.Enabled = false;
             presenter.Start();
+            btnConnect.Enabled = false;
+            btnDisconnect.Enabled = true;
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            presenter.Dispose();
+          await  presenter.Dispose();
         }
         private async void btnDisconnect_Click(object sender, EventArgs e)
         {
-            presenter.Dispose();
-            cbXbox360.Enabled = true;
+           await presenter.Dispose();
+           cbXbox360.Enabled = true;
+            btnConnect.Enabled  = true;
+            btnDisconnect.Enabled = false;
         }
 
 
@@ -87,24 +81,22 @@ namespace DuoPinballCore9
 
         public void UpdateLog(string v)
         {
-            string updated = DateTime.Now.ToString() + " - " + v;
-            this.presenter.LogItems.Add(new LogItem(v));
-            if(dataGridView1.Rows.Count > 0)
-            {
-                int lastRowIndex = dataGridView1.Rows.Count - 1;
-                // Set focus to the first visible cell of the last row
-                dataGridView1.CurrentCell = dataGridView1.Rows[lastRowIndex].Cells[0];
-            }
+           // string updated = DateTime.Now.ToString() + " - " + v;
+           
 
-            if(listView1.InvokeRequired)
+            if(dataGridView1.InvokeRequired)
             {
-                this.listView1.Invoke(new ControlStringConsumer(UpdateLog), new object[] { updated });
+                this.dataGridView1.Invoke(new ControlStringConsumer(UpdateLog), new object[] { v });
             }
             else
             {
-                var item = new ListViewItem(updated);
-
-                listView1.Items.Add(item);
+                Log.LogItems.Add(new LogItem(v));
+                if(dataGridView1.Rows.Count > 0)
+                {
+                    int lastRowIndex = dataGridView1.Rows.Count - 1;
+                    // Set focus to the first visible cell of the last row
+                    dataGridView1.CurrentCell = dataGridView1.Rows[lastRowIndex].Cells[0];
+                }
             }
 
         }
@@ -112,30 +104,6 @@ namespace DuoPinballCore9
         private void cbXbox360_CheckedChanged(object sender, EventArgs e)
         {
             presenter.UseXbox360 = cbXbox360.Checked;
-        }
-    }
-
-
-    public class LogItem
-    {
-        private string detail = "";
-        private string time = DateTime.Now.ToString();
-
-        public string Detail
-        {
-            get => this.detail;
-            set => this.detail = value;
-        }
-        public string Time
-        {
-            get => this.time;
-            set => this.time = value;
-        }
-
-        public LogItem(string v)
-        {
-            Detail = v;
-            
         }
     }
 }

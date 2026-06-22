@@ -14,18 +14,7 @@ namespace DuoPinballCore9
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
              Application.Run(new Form1());
-            //await using var receiver = new HighPerformanceSerialReceiver("COM6", 115200);
-            //receiver.Start();
-
-            //var cts = new CancellationTokenSource();
-
-            //// This loop processes data on an entirely separate thread pool allocation
-            //Console.WriteLine("Listening to high-speed stream...");
-            //await foreach(var rawBytes in receiver.ConsumeDataAsync(cts.Token))
-            //{
-            //    // Parse binary telemetry frames or strings here without bottlenecking the port!
-            //    // Example: ProcessPacket(rawBytes);
-            //}
+        
         }
     }
 }

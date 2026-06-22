@@ -44,8 +44,8 @@ namespace DuoPinballCore9
             }
       
         }
-        private IXbox360Controller _xbox360Controller;
-        private IXbox360Controller Xbox360Controller
+        private IXbox360Controller? _xbox360Controller;
+        private IXbox360Controller VirtualXbox360Controller
         {
             get
             {
@@ -254,17 +254,17 @@ namespace DuoPinballCore9
                         if(key == VirtualKeyShort.LSHIFT)
                         {
 
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, true);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, true);
                             //   //InputSimulator.Keyboard.KeyDown(key);
                         }
                         else if(key == VirtualKeyShort.RSHIFT)
                         {
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, true);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.RightShoulder, true);
                         }
                         else if(key == VirtualKeyShort.SPACE)
                         {
                            // InputSimulator.Keyboard.KeyDown(key);
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.A, true);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.A, true);
                         }
                     }
                     else
@@ -272,17 +272,17 @@ namespace DuoPinballCore9
                         if(key == VirtualKeyShort.LSHIFT)
                         {
 
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, false);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, false);
                             //   //InputSimulator.Keyboard.KeyDown(key);
                         }
                         else if(key == VirtualKeyShort.RSHIFT)
                         {
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, false);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.RightShoulder, false);
                         }
                         else if(key == VirtualKeyShort.SPACE)
                         {
                            // InputSimulator.Keyboard.KeyUp(key);
-                            this.Xbox360Controller.SetButtonState(Xbox360Button.A, false);
+                            this.VirtualXbox360Controller.SetButtonState(Xbox360Button.A, false);
                         }
                         //InputSimulator.Keyboard.KeyUp(key);
                     }
@@ -307,15 +307,20 @@ namespace DuoPinballCore9
         
         }
 
-        internal  void Dispose()
+        internal async ValueTask Dispose()
         {
             if(receiver != null)
             {
-               receiver.DisposeAsync();
+              await receiver.DisposeAsync();
             }
             if(ViGEmClient != null)
             {
-            ViGEmClient.Dispose();
+        
+               
+                    ViGEmClient.Dispose(); 
+                            // _xbox360Controller = null;
+
+
             }
 
         }
