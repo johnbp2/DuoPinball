@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{58376BB4-9484-4189-BD94-F63B8D19C80D}"
 	ProjectSection(SolutionItems) = preProject
 		form.CS = form.CS
+		C:\standalone\DuoPinballXbox\Nefarius.ViGEm.Client.dll = C:\standalone\DuoPinballXbox\Nefarius.ViGEm.Client.dll
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuoPinballCore9", "DuoPinballCore9\DuoPinballCore9.csproj", "{9CA1D3EB-2124-4CFD-9908-B48AA0C673B3}"

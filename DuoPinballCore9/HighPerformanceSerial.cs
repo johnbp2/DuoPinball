@@ -19,8 +19,8 @@ namespace DuoPinballCore9
     {
         private readonly SerialPort _serialPort;
         private readonly Channel<byte[]> _packetChannel;
-        private CancellationTokenSource _cts;
-        private Task _readTask;
+        private CancellationTokenSource? _cts;
+        private Task? _readTask;
         public string DebugDisplay
         {
             get

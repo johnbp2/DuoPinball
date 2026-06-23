@@ -47,13 +47,13 @@ namespace DuoPinballCore9
 
         private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-          await  presenter.Dispose();
+            await presenter.Dispose();
         }
         private async void btnDisconnect_Click(object sender, EventArgs e)
         {
-           await presenter.Dispose();
-           cbXbox360.Enabled = true;
-            btnConnect.Enabled  = true;
+            await presenter.Dispose();
+            cbXbox360.Enabled = true;
+            btnConnect.Enabled = true;
             btnDisconnect.Enabled = false;
         }
 
@@ -81,8 +81,8 @@ namespace DuoPinballCore9
 
         public void UpdateLog(string v)
         {
-           // string updated = DateTime.Now.ToString() + " - " + v;
-           
+            // string updated = DateTime.Now.ToString() + " - " + v;
+
 
             if(dataGridView1.InvokeRequired)
             {
@@ -104,6 +104,11 @@ namespace DuoPinballCore9
         private void cbXbox360_CheckedChanged(object sender, EventArgs e)
         {
             presenter.UseXbox360 = cbXbox360.Checked;
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+                
         }
     }
 }

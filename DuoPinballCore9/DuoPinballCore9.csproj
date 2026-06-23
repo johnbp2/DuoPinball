@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <Reference Include="Nefarius.ViGEm.Client">
-      <HintPath>C:\standalone\DuoPinballXbox\Nefarius.ViGEm.Client.dll</HintPath>
+      <HintPath>..\Nefarius.ViGEm.Client.dll</HintPath>
     </Reference>
   </ItemGroup>
 
